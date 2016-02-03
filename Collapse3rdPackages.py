@@ -16,6 +16,9 @@ de.appplant.cordova
 javax.annotation
 org.apache
 com.amap.api.location
+com.loopj.android
+com.umeng
+com.weibo.sdk
 """
 
 
@@ -59,7 +62,9 @@ class Collapse3rdPackages(IScript):
             return
 
         temp = "|".join(third_party_packages.strip().replace(".", "\.").splitlines())
-        new_pattern = method_compile.invoke(None, "^({0}).*".format(temp))
+        temp = "^({0}).*".format(temp)
+        print temp
+        new_pattern = method_compile.invoke(None, temp)
 
         field_pattern.set(instance_real_view, new_pattern)
 
