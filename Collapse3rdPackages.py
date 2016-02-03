@@ -19,6 +19,7 @@ com.amap.api.location
 com.loopj.android
 com.umeng
 com.weibo.sdk
+com.google.gson
 """
 
 
