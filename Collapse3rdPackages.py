@@ -8,18 +8,26 @@ __author__ = "TheCjw"
 from jeb.api import IScript
 from jeb.api.ui import View
 
-third_party_packages = """
-android.
-android.support
+third_party_packages = """android.
+android.support.
 cn.jpush
-de.appplant.cordova
-javax.annotation
-org.apache
-com.amap.api.location
-com.loopj.android
-com.umeng
-com.weibo.sdk
-com.google.gson
+com.actionbarsherlock.
+com.alipay.sdk.
+com.amap.api.location.
+com.baidu.
+com.github.
+com.google.
+com.igexin.
+com.j256.ormlite.
+com.loopj.android.
+com.squareup.okhttp.
+com.umeng.
+com.weibo.
+de.appplant.cordova.
+de.greenrobot.event.
+javax.annotation.
+net.sourceforge.
+org.apache.
 """
 
 
@@ -27,6 +35,9 @@ class Collapse3rdPackages(IScript):
     def run(self, jeb):
         self.jeb = jeb
         self.jebUi = self.jeb.getUI()
+
+        # TODO: for dex: collapse all packages or third party packages.
+        #        for apk: collapse all packages first, than expand current package only.
 
         instance_tree_view = self.jebUi.getView(View.Type.CLASS_HIERARCHY)
 
