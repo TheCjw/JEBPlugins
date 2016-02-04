@@ -1,7 +1,4 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Author: TheCjw<thecjw@live.com>
-# Created on 2016.02.03
+#? name=Collapse common packages, author=TheCjw, help=Collapse common packages
 
 __author__ = "TheCjw"
 
@@ -10,7 +7,7 @@ from java.util.regex import Pattern
 from jeb.api import IScript
 from jeb.api.ui import View
 
-third_party_packages = """android.
+common_packages = """android.
 android.support.
 cn.jpush
 com.actionbarsherlock.
@@ -33,10 +30,17 @@ org.apache.
 """
 
 
-class Collapse3rdPackages(IScript):
+class CollapseCommonPackages(IScript):
+    def __init__(self):
+        super(IScript, self).__init__()
+
     def run(self, jeb):
         self.jeb = jeb
         self.jebUi = self.jeb.getUI()
+
+        if not self.jeb.isFileLoaded():
+            print "Please load a file"
+            return
 
         # TODO: for dex: collapse all packages or third party packages.
         #        for apk: collapse all packages first, than expand current package only.
@@ -59,7 +63,7 @@ class Collapse3rdPackages(IScript):
 
         field_pattern.setAccessible(True)
 
-        temp = "|".join(third_party_packages.strip().replace(".", "\.").splitlines())
+        temp = "|".join(common_packages.strip().replace(".", "\.").splitlines())
         temp = "^({0}).*".format(temp)
         print temp
         new_pattern = Pattern.compile(temp)
