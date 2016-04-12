@@ -93,7 +93,6 @@ class XposedCodeSnippet(IScript):
             # Object args{0} = param.args[1]; // {2}
             variables = "".join(["        Object arg{0} = param.args[{1}]; // {2}\n".format(i, i, types[i])
                                  for i in xrange(0, len(types))])
-            print variables
 
         lines = hook_tempplate.format(xposed_method=xposed_method,
                                       class_name=class_name,
