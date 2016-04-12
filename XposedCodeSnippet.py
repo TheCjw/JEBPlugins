@@ -6,21 +6,24 @@ from jeb.api import IScript
 from jeb.api.ui import View
 from jeb.api.dex import Dex
 
-hook_tempplate = """{xposed_method}("{class_name}",
+hook_tempplate = """
+{xposed_method}("{class_name}",
     loadPackageParam.classLoader,
     {method_name}
-{params}
+{signatures}
     new XC_MethodHook() {{
       @Override
       protected void beforeHookedMethod(MethodHookParam param)
           throws Throwable {{
+{variables}
       }}
       @Override
       protected void afterHookedMethod(MethodHookParam param)
           throws Throwable {{
+{variables}
       }}
-    }}
-);"""
+    }});
+"""
 
 
 class XposedCodeSnippet(IScript):
@@ -81,17 +84,21 @@ class XposedCodeSnippet(IScript):
 
         proto = self.dex.getPrototype(dex_method.getPrototypeIndex())
 
-        params = ""
+        signatures = ""
+        variables = ""
         if len(proto.getParameterTypeIndexes()):
-            params = "".join(
-                ["    \"{0}\",\n".format(p) for p in [XposedCodeSnippet.to_canonical_name(self.dex.getType(i))
-                                                      for i in proto.getParameterTypeIndexes()]])
+            types = [XposedCodeSnippet.to_canonical_name(self.dex.getType(i))
+                     for i in proto.getParameterTypeIndexes()]
+            signatures = "".join(["    \"{0}\",\n".format(t) for t in types])
+            # Object args{0} = param.args[1]; // {2}
+            variables = "".join(["        Object arg{0} = param.args[{1}]; // {2}\n".format(i, i, types[i])
+                                 for i in xrange(0, len(types))])
+            print variables
 
         lines = hook_tempplate.format(xposed_method=xposed_method,
                                       class_name=class_name,
                                       method_name=method_name,
-                                      params=params).splitlines()
-        print
+                                      signatures=signatures,
+                                      variables=variables).splitlines()
         # Remove empty lines.
         print "".join([x + "\n" for x in lines if x.strip()])
-        print
