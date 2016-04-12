@@ -1,4 +1,4 @@
-#? name=Xposed code snippet, shortcut=Ctrl+Shift+X, author=TheCjw, help=Generate xposed hook code snippet for current method
+# ? name=Xposed code snippet, shortcut=Ctrl+Shift+X, author=TheCjw, help=Generate xposed hook code snippet for current method
 
 __author__ = "TheCjw"
 
@@ -80,12 +80,12 @@ class XposedCodeSnippet(IScript):
         method_name = "" if method_name == "<init>" else "\"{0}\",\n".format(method_name)
 
         proto = self.dex.getPrototype(dex_method.getPrototypeIndex())
-        parameters = [XposedCodeSnippet.to_canonical_name(self.dex.getType(i))
-                      for i in proto.getParameterTypeIndexes()]
 
         params = ""
-        if len(parameters):
-            params = "".join(["    \"{0}\",\n".format(p) for p in parameters])
+        if len(proto.getParameterTypeIndexes()):
+            params = "".join(
+                ["    \"{0}\",\n".format(p) for p in [XposedCodeSnippet.to_canonical_name(self.dex.getType(i))
+                                                      for i in proto.getParameterTypeIndexes()]])
 
         lines = hook_tempplate.format(xposed_method=xposed_method,
                                       class_name=class_name,
