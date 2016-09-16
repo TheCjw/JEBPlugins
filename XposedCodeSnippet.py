@@ -1,4 +1,4 @@
-# ? name=Xposed code snippet, shortcut=Ctrl+Shift+X, author=TheCjw, help=Generate xposed hook code snippet for current method
+#? name=Xposed code snippet, shortcut=Ctrl+Shift+X, author=TheCjw, help=Generate xposed hook code snippet for current method
 
 __author__ = "TheCjw"
 
