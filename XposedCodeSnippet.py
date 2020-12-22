@@ -1,10 +1,7 @@
-#? name=Xposed code snippet, shortcut=Ctrl+Shift+X, author=TheCjw, help=Generate xposed hook code snippet for current method
+# Xposed code snippet for JEB 3.x 
 
-__author__ = "TheCjw"
-
-from jeb.api import IScript
-from jeb.api.ui import View
-from jeb.api.dex import Dex
+from com.pnfsoftware.jeb.client.api import IScript
+from com.pnfsoftware.jeb.core.units.code.android import IDexUnit
 
 hook_tempplate = """
 {xposed_method}("{class_name}",
@@ -25,10 +22,7 @@ hook_tempplate = """
     }});
 """
 
-
 class XposedCodeSnippet(IScript):
-    def __init__(self):
-        super(IScript, self).__init__()
 
     @staticmethod
     def to_canonical_name(dalvik_name):
@@ -50,47 +44,48 @@ class XposedCodeSnippet(IScript):
 
         return type_name[dalvik_name[0]]
 
-    def run(self, jeb):
-        self.jeb = jeb
-        self.jebUi = jeb.getUI()
-        self.dex = jeb.getDex()
+    def run(self, ctx):
+        prj = ctx.getMainProject()
+        dex = prj.findUnit(IDexUnit)
 
-        if not self.jeb.isFileLoaded():
-            print "Please load a file"
+        if not dex:
+            print('[XposedCodeSnippet] Open a DEX unit.')
             return
 
-        code_view = self.jebUi.getView(View.Type.JAVA)
-        current_position = code_view.getCodePosition()
+        addr = ctx.getFocusedView().getActiveFragment().getActiveAddress()
 
-        if current_position is None:
+        if not addr:
+            print('[XposedCodeSnippet] Invalid address.')
             return
 
-        signature = current_position.getSignature()
+        pos = addr.find('+')
+        if pos >= 0:
+            mname = addr[0:pos]
+            off = int(addr[pos + 1:].rstrip('h'), 16)
+        else:
+            mname = addr
+            off = 0
 
-        if signature.find("(") == -1:
+        _method = dex.getMethod(mname)
+        if not _method:
+            print('[XposedCodeSnippet] No method found at address: %s' % addr)
             return
 
-        method_index = self.dex.getMethodData(signature).getMethodIndex()
-        dex_method = self.dex.getMethod(method_index)
+        method_name = _method.getName()
 
-        method_name = dex_method.getName()
-        class_name = XposedCodeSnippet.to_canonical_name(self.dex.getType(dex_method.getClassTypeIndex()))
-
+        print('[XposedCodeSnippet] Method: %s, Offset: 0x%X' % (mname, off))
         if method_name == "<clinit>":
             return
-
+        
+        class_name = XposedCodeSnippet.to_canonical_name(_method.getClassType().address)
         xposed_method = "findAndHookConstructor" if method_name == "<init>" else "findAndHookMethod"
         method_name = "" if method_name == "<init>" else "\"{0}\",\n".format(method_name)
 
-        proto = self.dex.getPrototype(dex_method.getPrototypeIndex())
-
         signatures = ""
         variables = ""
-        if len(proto.getParameterTypeIndexes()):
-            types = [XposedCodeSnippet.to_canonical_name(self.dex.getType(i))
-                     for i in proto.getParameterTypeIndexes()]
+        if len(_method.getParameterTypes()):
+            types = [XposedCodeSnippet.to_canonical_name(_param.address) for _param in _method.getParameterTypes()]
             signatures = "".join(["    \"{0}\",\n".format(t) for t in types])
-            # Object args{0} = param.args[1]; // {2}
             variables = "".join(["        Object arg{0} = param.args[{1}]; // {2}\n".format(i, i, types[i])
                                  for i in xrange(0, len(types))])
 
@@ -99,5 +94,6 @@ class XposedCodeSnippet(IScript):
                                       method_name=method_name,
                                       signatures=signatures,
                                       variables=variables).splitlines()
-        # Remove empty lines.
-        print "".join([x + "\n" for x in lines if x.strip()])
+        print("\n")
+        print("".join([x + "\n" for x in lines if x.strip()]))
+        print("\n")
